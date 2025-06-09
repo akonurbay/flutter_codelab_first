@@ -178,12 +178,20 @@ class FavoritesPage extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(20),
           child: Text('You have '
-              '${appState.favorites.length} favorites:'),
+              '${appState.favorites.length} favorites:',style: TextStyle(fontSize:30 ),),
         ),
         for (var pair in appState.favorites)
           ListTile(
             leading: Icon(Icons.favorite),
             title: Text(pair.asLowerCase),
+            trailing: IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              tooltip: 'Удалить из избранного',
+              onPressed: () {
+                appState.favorites.remove(pair);
+                appState.notifyListeners();
+              },
+            ),
           ),
       ],
     );
