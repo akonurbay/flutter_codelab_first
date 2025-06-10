@@ -62,6 +62,10 @@ switch (selectedIndex) {
     break;
   case 1:
     page = FavoritesPage();
+  case 2:
+    page = AddNotesPage();
+  case 3:
+    page = ListOfNotesPage();
     break;
   default:
     throw UnimplementedError('no widget for $selectedIndex');
@@ -202,6 +206,23 @@ class FavoritesPage extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class AddNotesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text('Add Notes Page'),
+    );
+  }
+}
+class ListOfNotesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text('List of Notes Page'),
     );
   }
 }
