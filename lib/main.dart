@@ -84,6 +84,14 @@ switch (selectedIndex) {
                       icon: Icon(Icons.favorite),
                       label: Text('Favorites'),
                     ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.edit_note_sharp, size: 30),
+                       label: Text('AddNotes')
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.format_list_numbered_rtl_rounded, size: 30),
+                      label: Text('ListOfNotes')
+                       )
                   ],
                   selectedIndex: selectedIndex,
                   onDestinationSelected: (value) {
