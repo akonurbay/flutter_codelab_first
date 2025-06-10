@@ -27,7 +27,12 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
-
+  List<String> notes = ['hello', 'world', 'this', 'is', 'a', 'test'];
+  
+  void addNote(String note){
+    notes.add(note);
+    notifyListeners();
+  }
   void getNext() {
     current = WordPair.random();
     notifyListeners();
@@ -210,22 +215,74 @@ class FavoritesPage extends StatelessWidget {
   }
 }
 
-class AddNotesPage extends StatelessWidget {
+class AddNotesPage extends StatefulWidget {
+  
+  @override
+  State<AddNotesPage> createState() => _AddNotesPageState();
+}
+
+class _AddNotesPageState extends State<AddNotesPage> {
+  final _controller = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text('Add Notes Page'),
+    var appState = context.watch<MyAppState>();
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextField(
+            controller: _controller,
+            decoration: InputDecoration(labelText: 'Type notes here...')
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: (){
+                // Здесь можно добавить логику для сохранения заметки
+                if(_controller.text.isNotEmpty){
+                  appState.addNote(_controller.text);
+                  _controller.clear();
+                }
+              },
+              child: Text('Add Note'),)
+        ],
+      ),
+
     );
   }
 }
+
+
+
 class ListOfNotesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text('List of Notes Page'),
+    // Здесь можно добавить логику для отображения списка заметок
+    var appState = context.watch<MyAppState>();
+    if (appState.notes.isEmpty) {
+      return Center(
+        child: Text('No notes yet, start adding some!'),
+      );
+    }
+    return ListView.builder(
+      itemCount: appState.notes.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(appState.notes[index]),
+          trailing: IconButton(
+            icon: Icon(Icons.delete, color: Colors.red),
+            onPressed: () {
+              appState.notes.removeAt(index);
+              appState.notifyListeners();
+            },
+          ),
+        );
+      },
     );
   }
 }
+
+
 class BigCard extends StatelessWidget {
   const BigCard({
     super.key,
