@@ -204,9 +204,28 @@ class FavoritesPage extends StatelessWidget {
             trailing: IconButton(
               icon: Icon(Icons.delete, color: Colors.red),
               tooltip: 'Удалить из избранного',
-              onPressed: () {
-                appState.favorites.remove(pair);
-                appState.notifyListeners();
+              onPressed: () async{
+                final confirm  = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Delete favorite?'),
+                    content: Text('Are you sure you want to delete this favorite?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text('Delete'),
+                      ),
+                    ],
+                  )
+                );
+                if(confirm == true){
+                  appState.favorites.remove(pair);
+                  appState.notifyListeners();
+                }
               },
             ),
           ),
@@ -271,9 +290,28 @@ class ListOfNotesPage extends StatelessWidget {
           title: Text(appState.notes[index]),
           trailing: IconButton(
             icon: Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              appState.notes.removeAt(index);
-              appState.notifyListeners();
+            onPressed: () async{
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('delete note?'),
+                  content: Text('Are you sure you want to delete this note?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: Text('cancel'),
+                    ),
+                    TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: Text('delete')
+                    )
+                  ],
+                )
+              );
+              if(confirm == true){
+                appState.notes.removeAt(index);
+                appState.notifyListeners();
+              }
             },
           ),
         );
