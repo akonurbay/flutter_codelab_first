@@ -72,6 +72,9 @@ switch (selectedIndex) {
   case 3:
     page = ListOfNotesPage();
     break;
+  case 4:
+    page = Settings();
+    break;
   default:
     throw UnimplementedError('no widget for $selectedIndex');
 }
@@ -100,7 +103,11 @@ switch (selectedIndex) {
                     NavigationRailDestination(
                       icon: Icon(Icons.format_list_numbered_rtl_rounded, size: 30),
                       label: Text('ListOfNotes')
-                       )
+                       ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.settings),
+                      label: Text('Settings'),
+                    ),
                   ],
                   selectedIndex: selectedIndex,
                   onDestinationSelected: (value) {
@@ -120,6 +127,18 @@ switch (selectedIndex) {
           ),
         );
       }
+    );
+  }
+}
+
+class Settings extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        'Settings Page',
+        style: TextStyle(fontSize: 24),
+      ),
     );
   }
 }
