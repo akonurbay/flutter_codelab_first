@@ -220,7 +220,10 @@ class _FavoritesPageState extends State<FavoritesPage> {
     return Column(
       children: [
         if (selectionMode)
-          Row(
+        Padding(
+    padding: const EdgeInsets.only(top: 20, left: 16, right: 16, bottom: 8),
+    child: Row(
+
             children: [
               TextButton(
                 onPressed: () {
@@ -244,6 +247,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
               ),
             ],
           ),
+
+    ),
+  
         Expanded(
           child: ListView(
             children: [
@@ -370,8 +376,6 @@ class _FavoritesPageState extends State<FavoritesPage> {
       ],
     );
   }
-}
-
 class AddNotesPage extends StatefulWidget {
   
   @override
