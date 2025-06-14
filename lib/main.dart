@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Namer App',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.greenAccent),
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 56, 56, 209)),
         ),
         home: MyHomePage(),
       ),
@@ -198,8 +198,127 @@ var iconSize = 24.0; // Стандартный размер иконки
     );
   }
 }
-class FavoritesPage extends StatelessWidget {
+class FavoritesPage extends StatefulWidget {
   @override
+  State<FavoritesPage> createState() => _FavoritesPageState();
+}
+
+class _FavoritesPageState extends State<FavoritesPage> {
+  bool selectionMode = false;
+  Set<WordPair> selected = {};
+
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
+    if (appState.favorites.isEmpty) {
+      return Center(
+        child: Text('No favorites yet, start adding some!'),
+      );
+    }
+
+    return Column(
+      children: [
+        if (selectionMode)
+          Row(
+            children: [
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    appState.favorites.removeWhere((pair) => selected.contains(pair));
+                    selected.clear();
+                    selectionMode = false;
+                    appState.notifyListeners();
+                  });
+                },
+                child: Text('Удалить выбранные', style: TextStyle(color: Colors.red)),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    selected.clear();
+                    selectionMode = false;
+                  });
+                },
+                child: Text('Отмена'),
+              ),
+            ],
+          ),
+        Expanded(
+          child: ListView(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  'You have ${appState.favorites.length} favorites:',
+                  style: TextStyle(fontSize: 30),
+                ),
+              ),
+              for (var pair in appState.favorites)
+                ListTile(
+                  leading: selectionMode
+                      ? Checkbox(
+                          value: selected.contains(pair),
+                          onChanged: (checked) {
+                            setState(() {
+                              if (checked == true) {
+                                selected.add(pair);
+                              } else {
+                                selected.remove(pair);
+                              }
+                            });
+                          },
+                        )
+                      : Icon(Icons.favorite),
+                  title: Text(pair.asLowerCase),
+                  onLongPress: () {
+                    setState(() {
+                      selectionMode = true;
+                      selected.add(pair);
+                    });
+                  },
+                  trailing: !selectionMode
+                      ? IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          tooltip: 'Удалить из избранного',
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text('Удалить из избранного?'),
+                                content: Text('Вы действительно хотите удалить это слово из избранного?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(false),
+                                    child: Text('Нет'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    child: Text('Да'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              setState(() {
+                                appState.favorites.remove(pair);
+                                appState.notifyListeners();
+                              });
+                            }
+                          },
+                        )
+                      : null,
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+  bool selectionMode = false;
+  Set<WordPair> selected = {};
+    @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
 
