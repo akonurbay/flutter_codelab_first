@@ -27,12 +27,12 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
-  List<String> notes = ['hello', 'world', 'this', 'is', 'a', 'test'];
-  
-  void addNote(String note){
-    notes.add(note);
-    notifyListeners();
-  }
+  //List<String> notes = ['hello', 'world', 'this', 'is', 'a', 'test'];
+  List<Note> notes = [];
+void addNote(String title, String content) {
+  notes.add(Note(title: title, content: content));
+  notifyListeners();
+}
   void getNext() {
     current = WordPair.random();
     notifyListeners();
@@ -219,57 +219,55 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
     return Column(
       children: [
-        
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text(
+            'You have ${appState.favorites.length} favorites:',
+            style: TextStyle(fontSize: 30),
+          ),
+        ),
+        if (selectionMode)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 175, 137, 135)),
+                    onPressed: () {
+                      setState(() {
+                        appState.favorites.removeWhere((pair) => selected.contains(pair));
+                        selected.clear();
+                        selectionMode = false;
+                        appState.notifyListeners();
+                      });
+                    },
+                    child: Text('Удалить'),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        selected.clear();
+                        selectionMode = false;
+                      });
+                    },
+                    child: Text('Отмена'),
+                  ),
+                ),
+              ),
+            ],
+          ),
         Expanded(
           child: ListView(
-    children: [
-      Padding(
-        padding: const EdgeInsets.all(20),
-        child: Text(
-          'You have ${appState.favorites.length} favorites:',
-          style: TextStyle(fontSize: 30),
-        ),
-      ),
-      if (selectionMode)
-      Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 175, 137, 135)),
-          onPressed: () {
-                  setState(() {
-                    appState.favorites.removeWhere((pair) => selected.contains(pair));
-                    selected.clear();
-                    selectionMode = false;
-                    appState.notifyListeners();
-                  });
-                },
-          child: Text('Удалить'),
-        ),
-      ),
-    ),
-    Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: ElevatedButton(
-          onPressed: () {
-                  setState(() {
-                    selected.clear();
-                    selectionMode = false;
-                  });
-                },
-          child: Text('Отмена'),
-        ),
-      ),
-    ),
-  ],
-),
-
-      for (var pair in appState.favorites)
-        ListTile(
+            children: [
+              for (var pair in appState.favorites)
+                ListTile(
                   leading: selectionMode
                       ? Checkbox(
                           value: selected.contains(pair),
@@ -330,7 +328,8 @@ class _FavoritesPageState extends State<FavoritesPage> {
     );
   }
 }
-  bool selectionMode = false;
+
+
   Set<WordPair> selected = {};
     @override
   Widget build(BuildContext context) {
@@ -385,42 +384,54 @@ class _FavoritesPageState extends State<FavoritesPage> {
     );
   }
 class AddNotesPage extends StatefulWidget {
-  
   @override
   State<AddNotesPage> createState() => _AddNotesPageState();
 }
 
 class _AddNotesPageState extends State<AddNotesPage> {
-  final _controller = TextEditingController();
+  final _titleController = TextEditingController();
+  final _contentController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
+
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           TextField(
-            controller: _controller,
-            decoration: InputDecoration(labelText: 'Type notes here...')
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: (){
-                // Здесь можно добавить логику для сохранения заметки
-                if(_controller.text.isNotEmpty){
-                  appState.addNote(_controller.text);
-                  _controller.clear();
-                }
-              },
-              child: Text('Add Note'),)
+            controller: _titleController,
+            decoration: InputDecoration(labelText: 'Title'),
+          ),
+          SizedBox(height: 10),
+          TextField(
+            controller: _contentController,
+            decoration: InputDecoration(labelText: 'Content'),
+            maxLines: 3,
+          ),
+          SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () {
+              if (_titleController.text.isNotEmpty && _contentController.text.isNotEmpty) {
+                appState.addNote(_titleController.text, _contentController.text);
+                _titleController.clear();
+                _contentController.clear();
+              }
+            },
+            child: Text('Add Note'),
+          ),
         ],
       ),
-
     );
   }
 }
-
+class Note {
+  String title;
+  String content;
+  Note({required this.title, required this.content});
+}
 
 class ListOfNotesPage extends StatefulWidget {
   @override
@@ -430,12 +441,63 @@ class ListOfNotesPage extends StatefulWidget {
 class _ListOfNotesPageState extends State<ListOfNotesPage> {
   bool selectionMode = false;
   Set<int> selected = {};
+  TextEditingController _searchController = TextEditingController();
+  String _searchText = '';
+
+  void _editNote(BuildContext context, int index, Note note) {
+    final titleController = TextEditingController(text: note.title);
+    final contentController = TextEditingController(text: note.content);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit Note'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: InputDecoration(labelText: 'Title'),
+            ),
+            TextField(
+              controller: contentController,
+              decoration: InputDecoration(labelText: 'Content'),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                note.title = titleController.text;
+                note.content = contentController.text;
+                context.read<MyAppState>().notifyListeners();
+              });
+              Navigator.of(context).pop();
+            },
+            child: Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
 
-    if (appState.notes.isEmpty) {
+    final filteredNotes = appState.notes
+        .where((note) =>
+            note.title.toLowerCase().contains(_searchText.toLowerCase()) ||
+            note.content.toLowerCase().contains(_searchText.toLowerCase()))
+        .toList();
+
+    if (filteredNotes.isEmpty) {
       return Center(
         child: Text('No notes yet.'),
       );
@@ -447,9 +509,25 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
           Padding(
             padding: const EdgeInsets.all(20),
             child: Text(
-              'You have ${appState.notes.length} notes:',
+              'You have ${filteredNotes.length} notes:',
               style: TextStyle(fontSize: 30),
               textAlign: TextAlign.center,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search notes',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchText = value;
+                });
+              },
             ),
           ),
           if (selectionMode)
@@ -462,7 +540,6 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                       onPressed: () {
                         setState(() {
-                          // Удаляем выбранные заметки по индексам
                           appState.notes = [
                             for (int i = 0; i < appState.notes.length; i++)
                               if (!selected.contains(i)) appState.notes[i]
@@ -472,7 +549,7 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
                           appState.notifyListeners();
                         });
                       },
-                      child: Text('Удалить'),
+                      child: Text('Удалить выбранные'),
                     ),
                   ),
                 ),
@@ -494,57 +571,45 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
             ),
           Expanded(
             child: ListView.builder(
-              itemCount: appState.notes.length,
+              itemCount: filteredNotes.length,
               itemBuilder: (context, index) {
+                final note = filteredNotes[index];
+                final realIndex = appState.notes.indexOf(note);
                 return ListTile(
                   leading: selectionMode
                       ? Checkbox(
-                          value: selected.contains(index),
+                          value: selected.contains(realIndex),
                           onChanged: (checked) {
                             setState(() {
                               if (checked == true) {
-                                selected.add(index);
+                                selected.add(realIndex);
                               } else {
-                                selected.remove(index);
+                                selected.remove(realIndex);
                               }
                             });
                           },
                         )
                       : Icon(Icons.note),
-                  title: Text(appState.notes[index]),
+                  title: Text(note.title),
+                  subtitle: Text(
+                    note.content.length > 30
+                        ? note.content.substring(0, 30) + '...'
+                        : note.content,
+                  ),
+                  onTap: () {
+                    _editNote(context, realIndex, note);
+                  },
                   onLongPress: () {
                     setState(() {
                       selectionMode = true;
-                      selected.add(index);
+                      selected.add(realIndex);
                     });
                   },
                   trailing: !selectionMode
                       ? IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text('Удалить заметку?'),
-                                content: Text('Вы действительно хотите удалить эту заметку?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(false),
-                                    child: Text('Нет'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(true),
-                                    child: Text('Да'),
-                                  ),
-                                ],
-                              ),
-                            );
-                            if (confirm == true) {
-                              setState(() {
-                                appState.notes.removeAt(index);
-                                appState.notifyListeners();
-                              });
-                            }
+                          icon: Icon(Icons.edit),
+                          onPressed: () {
+                            _editNote(context, realIndex, note);
                           },
                         )
                       : null,
@@ -556,8 +621,9 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
       ),
     );
   }
-}
+} // ← закрывает _ListOfNotesPageState
 
+// Дальше твой следующий класс:
 class BigCard extends StatelessWidget {
   const BigCard({
     super.key,
@@ -583,4 +649,4 @@ class BigCard extends StatelessWidget {
       ),
     );
   }
-}// test comment
+}
