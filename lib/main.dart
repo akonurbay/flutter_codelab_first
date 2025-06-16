@@ -219,14 +219,27 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
     return Column(
       children: [
-        if (selectionMode)
-        Padding(
-    padding: const EdgeInsets.only(top: 20, left: 16, right: 16, bottom: 8),
-    child: Row(
-
-            children: [
-              TextButton(
-                onPressed: () {
+        
+        Expanded(
+          child: ListView(
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(20),
+        child: Text(
+          'You have ${appState.favorites.length} favorites:',
+          style: TextStyle(fontSize: 30),
+        ),
+      ),
+      if (selectionMode)
+      Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 175, 137, 135)),
+          onPressed: () {
                   setState(() {
                     appState.favorites.removeWhere((pair) => selected.contains(pair));
                     selected.clear();
@@ -234,34 +247,29 @@ class _FavoritesPageState extends State<FavoritesPage> {
                     appState.notifyListeners();
                   });
                 },
-                child: Text('Удалить выбранные', style: TextStyle(color: Colors.red)),
-              ),
-              TextButton(
-                onPressed: () {
+          child: Text('Удалить'),
+        ),
+      ),
+    ),
+    Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: ElevatedButton(
+          onPressed: () {
                   setState(() {
                     selected.clear();
                     selectionMode = false;
                   });
                 },
-                child: Text('Отмена'),
-              ),
-            ],
-          ),
-
+          child: Text('Отмена'),
+        ),
+      ),
     ),
-  
-        Expanded(
-          child: ListView(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  'You have ${appState.favorites.length} favorites:',
-                  style: TextStyle(fontSize: 30),
-                ),
-              ),
-              for (var pair in appState.favorites)
-                ListTile(
+  ],
+),
+
+      for (var pair in appState.favorites)
+        ListTile(
                   leading: selectionMode
                       ? Checkbox(
                           value: selected.contains(pair),
@@ -414,54 +422,141 @@ class _AddNotesPageState extends State<AddNotesPage> {
 }
 
 
+class ListOfNotesPage extends StatefulWidget {
+  @override
+  State<ListOfNotesPage> createState() => _ListOfNotesPageState();
+}
 
-class ListOfNotesPage extends StatelessWidget {
+class _ListOfNotesPageState extends State<ListOfNotesPage> {
+  bool selectionMode = false;
+  Set<int> selected = {};
+
   @override
   Widget build(BuildContext context) {
-    // Здесь можно добавить логику для отображения списка заметок
     var appState = context.watch<MyAppState>();
+
     if (appState.notes.isEmpty) {
       return Center(
-        child: Text('No notes yet, start adding some!'),
+        child: Text('No notes yet.'),
       );
     }
-    return ListView.builder(
-      itemCount: appState.notes.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(appState.notes[index]),
-          trailing: IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
-            onPressed: () async{
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('delete note?'),
-                  content: Text('Are you sure you want to delete this note?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: Text('cancel'),
-                    ),
-                    TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text('delete')
-                    )
-                  ],
-                )
-              );
-              if(confirm == true){
-                appState.notes.removeAt(index);
-                appState.notifyListeners();
-              }
-            },
+
+    return SafeArea(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              'You have ${appState.notes.length} notes:',
+              style: TextStyle(fontSize: 30),
+              textAlign: TextAlign.center,
+            ),
           ),
-        );
-      },
+          if (selectionMode)
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      onPressed: () {
+                        setState(() {
+                          // Удаляем выбранные заметки по индексам
+                          appState.notes = [
+                            for (int i = 0; i < appState.notes.length; i++)
+                              if (!selected.contains(i)) appState.notes[i]
+                          ];
+                          selected.clear();
+                          selectionMode = false;
+                          appState.notifyListeners();
+                        });
+                      },
+                      child: Text('Удалить'),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          selected.clear();
+                          selectionMode = false;
+                        });
+                      },
+                      child: Text('Отмена'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: appState.notes.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  leading: selectionMode
+                      ? Checkbox(
+                          value: selected.contains(index),
+                          onChanged: (checked) {
+                            setState(() {
+                              if (checked == true) {
+                                selected.add(index);
+                              } else {
+                                selected.remove(index);
+                              }
+                            });
+                          },
+                        )
+                      : Icon(Icons.note),
+                  title: Text(appState.notes[index]),
+                  onLongPress: () {
+                    setState(() {
+                      selectionMode = true;
+                      selected.add(index);
+                    });
+                  },
+                  trailing: !selectionMode
+                      ? IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text('Удалить заметку?'),
+                                content: Text('Вы действительно хотите удалить эту заметку?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(false),
+                                    child: Text('Нет'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    child: Text('Да'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              setState(() {
+                                appState.notes.removeAt(index);
+                                appState.notifyListeners();
+                              });
+                            }
+                          },
+                        )
+                      : null,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
-
 
 class BigCard extends StatelessWidget {
   const BigCard({
