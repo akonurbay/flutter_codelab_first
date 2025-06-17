@@ -1,17 +1,19 @@
-import 'package:english_words/english_words.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:english_words/english_words.dart'; // Для генерации случайных пар слов
+import 'package:flutter/cupertino.dart'; // Для iOS-стилей (можно убрать, если не используешь)
+import 'package:flutter/material.dart'; // Основные виджеты Flutter
+import 'package:provider/provider.dart'; // Для управления состоянием через Provider
 
 void main() {
-  runApp(MyApp());
+  runApp(MyApp()); // Точка входа в приложение
 }
 
+// Корневой виджет приложения
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // ChangeNotifierProvider делает MyAppState доступным во всём дереве виджетов
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: MaterialApp(
@@ -19,20 +21,24 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 56, 56, 209)),
         ),
-        home: MyHomePage(),
+        home: MyHomePage(), // Главная страница приложения
       ),
     );
   }
 }
 
+// Глобальное состояние приложения
 class MyAppState extends ChangeNotifier {
-  var current = WordPair.random();
-  List<Note> notes = [];
+  var current = WordPair.random(); // Текущая пара слов для генератора
+  List<Note> notes = []; // Список заметок
+
+  // Переменные для управления видимостью пунктов меню
   bool showFavorites = true;
   bool showAddNotes = true;
   bool showListOfNotes = true;
   bool showSettings = true;
 
+  // Методы для переключения видимости пунктов меню
   void toggleShowFavorites(bool value) {
     showFavorites = value;
     notifyListeners();
@@ -45,19 +51,26 @@ class MyAppState extends ChangeNotifier {
     showListOfNotes = value;
     notifyListeners();
   }
+  void toggleShowSettings(bool value) {
+    showSettings = value;
+    notifyListeners();
+  }
 
+  // Добавление новой заметки
   void addNote(String title, String content) {
     notes.add(Note(title: title, content: content));
     notifyListeners();
   }
 
+  // Генерация новой пары слов
   void getNext() {
     current = WordPair.random();
     notifyListeners();
   }
 
-  var favorites = <WordPair>[];
+  var favorites = <WordPair>[]; // Список избранных пар слов
 
+  // Добавление/удаление текущей пары слов в/из избранного
   void toggleFavourite() {
     if (favorites.contains(current)) {
       favorites.remove(current);
@@ -68,36 +81,75 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
+// Главная страница с NavigationRail и динамическими вкладками
 class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String selectedPageId = 'home';
+  String selectedPageId = 'home'; // id текущей выбранной страницы
 
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
 
+    // navItems — список пунктов меню и соответствующих страниц
     final navItems = <Map<String, dynamic>>[
-      {'id': 'home', 'widget': GeneratorPage(), 'destination': NavigationRailDestination(icon: Icon(Icons.home), label: Text('Home'))},
+      {
+        'id': 'home',
+        'widget': GeneratorPage(),
+        'destination': NavigationRailDestination(
+          icon: Icon(Icons.home),
+          label: Text('Home'),
+        )
+      },
       if (appState.showFavorites)
-        {'id': 'favorites', 'widget': FavoritesPage(), 'destination': NavigationRailDestination(icon: Icon(Icons.favorite), label: Text('Favorites'))},
+        {
+          'id': 'favorites',
+          'widget': FavoritesPage(),
+          'destination': NavigationRailDestination(
+            icon: Icon(Icons.favorite),
+            label: Text('Favorites'),
+          )
+        },
       if (appState.showAddNotes)
-        {'id': 'addNotes', 'widget': AddNotesPage(), 'destination': NavigationRailDestination(icon: Icon(Icons.edit_note_sharp, size: 30), label: Text('AddNotes'))},
+        {
+          'id': 'addNotes',
+          'widget': AddNotesPage(),
+          'destination': NavigationRailDestination(
+            icon: Icon(Icons.edit_note_sharp, size: 30),
+            label: Text('AddNotes'),
+          )
+        },
       if (appState.showListOfNotes)
-        {'id': 'listOfNotes', 'widget': ListOfNotesPage(), 'destination': NavigationRailDestination(icon: Icon(Icons.format_list_numbered_rtl_rounded, size: 30), label: Text('ListOfNotes'))},
+        {
+          'id': 'listOfNotes',
+          'widget': ListOfNotesPage(),
+          'destination': NavigationRailDestination(
+            icon: Icon(Icons.format_list_numbered_rtl_rounded, size: 30),
+            label: Text('ListOfNotes'),
+          )
+        },
       if (appState.showSettings)
-        {'id': 'settings', 'widget': SettingsPage(), 'destination': NavigationRailDestination(icon: Icon(Icons.settings), label: Text('Settings'))},
+        {
+          'id': 'settings',
+          'widget': SettingsPage(),
+          'destination': NavigationRailDestination(
+            icon: Icon(Icons.settings),
+            label: Text('Settings'),
+          )
+        },
     ];
 
+    // Получаем списки для NavigationRail и страниц
     final destinations = navItems.map((e) => e['destination'] as NavigationRailDestination).toList();
     final pages = navItems.map((e) => e['widget'] as Widget).toList();
     final ids = navItems.map((e) => e['id'] as String).toList();
 
+    // Определяем индекс текущей страницы
     int currentIndex = ids.indexOf(selectedPageId);
-    if (currentIndex == -1) currentIndex = 0;
+    if (currentIndex == -1) currentIndex = 0; // Если страница скрыта, переходим на первую
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -106,12 +158,12 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               SafeArea(
                 child: NavigationRail(
-                  extended: constraints.maxWidth >= 700,
-                  destinations: destinations,
-                  selectedIndex: currentIndex,
+                  extended: constraints.maxWidth >= 700, // Расширять меню на широких экранах
+                  destinations: destinations, // Пункты меню
+                  selectedIndex: currentIndex, // Текущий выбранный пункт
                   onDestinationSelected: (value) {
                     setState(() {
-                      selectedPageId = ids[value];
+                      selectedPageId = ids[value]; // Меняем id выбранной страницы
                     });
                   },
                 ),
@@ -119,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Expanded(
                 child: Container(
                   color: Theme.of(context).colorScheme.primaryContainer,
-                  child: pages[currentIndex],
+                  child: pages[currentIndex], // Отображаем выбранную страницу
                 ),
               ),
             ],
@@ -130,6 +182,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+// Страница настроек с тумблерами для отображения пунктов меню
 class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -150,12 +203,18 @@ class SettingsPage extends StatelessWidget {
           title: Text('Show ListOfNotes'),
           value: appState.showListOfNotes,
           onChanged: (val) => appState.toggleShowListOfNotes(val),
-        )
+        ),
+        SwitchListTile(
+          title: Text('Show Settings'),
+          value: appState.showSettings,
+          onChanged: (val) => appState.toggleShowSettings(val),
+        ),
       ],
     );
   }
 }
 
+// Страница генератора случайных слов
 class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -175,21 +234,21 @@ class GeneratorPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          BigCard(pair: pair),
+          BigCard(pair: pair), // Красивая карточка с парой слов
           SizedBox(height: 10),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               ElevatedButton(
                 onPressed: () {
-                  appState.getNext();
+                  appState.getNext(); // Сгенерировать новую пару слов
                 },
                 child: Text('Next'),
               ),
               SizedBox(width: 30),
               ElevatedButton.icon(
                 onPressed: () {
-                  appState.toggleFavourite();
+                  appState.toggleFavourite(); // Добавить/убрать из избранного
                 },
                 icon: AnimatedSwitcher(
                   duration: Duration(milliseconds: 300),
@@ -212,14 +271,15 @@ class GeneratorPage extends StatelessWidget {
   }
 }
 
+// Страница избранного с поддержкой множественного выбора и удаления
 class FavoritesPage extends StatefulWidget {
   @override
   State<FavoritesPage> createState() => _FavoritesPageState();
 }
 
 class _FavoritesPageState extends State<FavoritesPage> {
-  bool selectionMode = false;
-  Set<WordPair> selected = {};
+  bool selectionMode = false; // Режим выбора
+  Set<WordPair> selected = {}; // Выбранные элементы
 
   @override
   Widget build(BuildContext context) {
@@ -343,6 +403,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
   }
 }
 
+// Страница добавления заметки
 class AddNotesPage extends StatefulWidget {
   @override
   State<AddNotesPage> createState() => _AddNotesPageState();
@@ -388,23 +449,26 @@ class _AddNotesPageState extends State<AddNotesPage> {
   }
 }
 
+// Модель заметки
 class Note {
   String title;
   String content;
   Note({required this.title, required this.content});
 }
 
+// Страница списка заметок с поиском, выбором и редактированием
 class ListOfNotesPage extends StatefulWidget {
   @override
   State<ListOfNotesPage> createState() => _ListOfNotesPageState();
 }
 
 class _ListOfNotesPageState extends State<ListOfNotesPage> {
-  bool selectionMode = false;
-  Set<int> selected = {};
+  bool selectionMode = false; // Режим выбора
+  Set<int> selected = {}; // Индексы выбранных заметок
   TextEditingController _searchController = TextEditingController();
   String _searchText = '';
 
+  // Диалог редактирования заметки
   void _editNote(BuildContext context, int index, Note note) {
     final titleController = TextEditingController(text: note.title);
     final contentController = TextEditingController(text: note.content);
@@ -452,6 +516,7 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
 
+    // Фильтрация заметок по поиску
     final filteredNotes = appState.notes
         .where((note) =>
             note.title.toLowerCase().contains(_searchText.toLowerCase()) ||
@@ -526,7 +591,7 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
             ),
           Expanded(
             child: filteredNotes.isEmpty
-                ? Container()
+                ? Container() // Если ничего не найдено — просто пусто
                 : ListView.builder(
                     itemCount: filteredNotes.length,
                     itemBuilder: (context, index) {
@@ -580,6 +645,7 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
   }
 }
 
+// Красивая карточка для генератора слов
 class BigCard extends StatelessWidget {
   const BigCard({
     super.key,
@@ -605,4 +671,4 @@ class BigCard extends StatelessWidget {
       ),
     );
   }
-  }
+}
