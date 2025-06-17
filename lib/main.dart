@@ -220,7 +220,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.only(left: 10, right: 20, top: 80, bottom: 0),
           child: Text(
             'You have ${appState.favorites.length} favorites:',
             style: TextStyle(fontSize: 30),
@@ -249,7 +249,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: const EdgeInsets.only(right: 0, left: 0, top: 0, bottom: 0),
                   child: ElevatedButton(
                     onPressed: () {
                       setState(() {
@@ -487,21 +487,15 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
+@override
+Widget build(BuildContext context) {
+  var appState = context.watch<MyAppState>();
 
-    final filteredNotes = appState.notes
-        .where((note) =>
-            note.title.toLowerCase().contains(_searchText.toLowerCase()) ||
-            note.content.toLowerCase().contains(_searchText.toLowerCase()))
-        .toList();
-
-    if (filteredNotes.isEmpty) {
-      return Center(
-        child: Text('No notes yet.'),
-      );
-    }
+  final filteredNotes = appState.notes
+      .where((note) =>
+          note.title.toLowerCase().contains(_searchText.toLowerCase()) ||
+          note.content.toLowerCase().contains(_searchText.toLowerCase()))
+      .toList();
 
     return SafeArea(
       child: Column(
