@@ -27,12 +27,30 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
-  //List<String> notes = ['hello', 'world', 'this', 'is', 'a', 'test'];
   List<Note> notes = [];
-void addNote(String title, String content) {
-  notes.add(Note(title: title, content: content));
-  notifyListeners();
-}
+  bool showFavorites = true;
+  bool showAddNotes = true;
+  bool showListOfNotes = true;
+  bool showSettings = true;
+
+  void toggleShowFavorites(bool value) {
+    showFavorites = value;
+    notifyListeners();
+  }
+  void toggleShowAddNotes(bool value) {
+    showAddNotes = value;
+    notifyListeners();
+  }
+  void toggleShowListOfNotes(bool value) {
+    showListOfNotes = value;
+    notifyListeners();
+  }
+
+  void addNote(String title, String content) {
+    notes.add(Note(title: title, content: content));
+    notifyListeners();
+  }
+
   void getNext() {
     current = WordPair.random();
     notifyListeners();
@@ -40,14 +58,14 @@ void addNote(String title, String content) {
 
   var favorites = <WordPair>[];
 
-  toggleFavourite(){
-    if(favorites.contains(current)){
+  void toggleFavourite() {
+    if (favorites.contains(current)) {
       favorites.remove(current);
+    } else {
+      favorites.add(current);
     }
-    else{favorites.add(current);}
     notifyListeners();
   }
-
 }
 
 class MyHomePage extends StatefulWidget {
@@ -56,28 +74,30 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var selectedIndex = 0;
-  
+  String selectedPageId = 'home';
+
   @override
   Widget build(BuildContext context) {
-    Widget page;
-switch (selectedIndex) {
-  case 0:
-    page = GeneratorPage();
-    break;
-  case 1:
-    page = FavoritesPage();
-  case 2:
-    page = AddNotesPage();
-  case 3:
-    page = ListOfNotesPage();
-    break;
-  case 4:
-    page = Settings();
-    break;
-  default:
-    throw UnimplementedError('no widget for $selectedIndex');
-}
+    var appState = context.watch<MyAppState>();
+
+    final navItems = <Map<String, dynamic>>[
+      {'id': 'home', 'widget': GeneratorPage(), 'destination': NavigationRailDestination(icon: Icon(Icons.home), label: Text('Home'))},
+      if (appState.showFavorites)
+        {'id': 'favorites', 'widget': FavoritesPage(), 'destination': NavigationRailDestination(icon: Icon(Icons.favorite), label: Text('Favorites'))},
+      if (appState.showAddNotes)
+        {'id': 'addNotes', 'widget': AddNotesPage(), 'destination': NavigationRailDestination(icon: Icon(Icons.edit_note_sharp, size: 30), label: Text('AddNotes'))},
+      if (appState.showListOfNotes)
+        {'id': 'listOfNotes', 'widget': ListOfNotesPage(), 'destination': NavigationRailDestination(icon: Icon(Icons.format_list_numbered_rtl_rounded, size: 30), label: Text('ListOfNotes'))},
+      if (appState.showSettings)
+        {'id': 'settings', 'widget': SettingsPage(), 'destination': NavigationRailDestination(icon: Icon(Icons.settings), label: Text('Settings'))},
+    ];
+
+    final destinations = navItems.map((e) => e['destination'] as NavigationRailDestination).toList();
+    final pages = navItems.map((e) => e['widget'] as Widget).toList();
+    final ids = navItems.map((e) => e['id'] as String).toList();
+
+    int currentIndex = ids.indexOf(selectedPageId);
+    if (currentIndex == -1) currentIndex = 0;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -87,32 +107,11 @@ switch (selectedIndex) {
               SafeArea(
                 child: NavigationRail(
                   extended: constraints.maxWidth >= 700,
-                  destinations: [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home),
-                      label: Text('Home'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.favorite),
-                      label: Text('Favorites'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.edit_note_sharp, size: 30),
-                       label: Text('AddNotes')
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.format_list_numbered_rtl_rounded, size: 30),
-                      label: Text('ListOfNotes')
-                       ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.settings),
-                      label: Text('Settings'),
-                    ),
-                  ],
-                  selectedIndex: selectedIndex,
+                  destinations: destinations,
+                  selectedIndex: currentIndex,
                   onDestinationSelected: (value) {
                     setState(() {
-                      selectedIndex = value;
+                      selectedPageId = ids[value];
                     });
                   },
                 ),
@@ -120,43 +119,56 @@ switch (selectedIndex) {
               Expanded(
                 child: Container(
                   color: Theme.of(context).colorScheme.primaryContainer,
-                  child: page,
+                  child: pages[currentIndex],
                 ),
               ),
             ],
           ),
         );
-      }
+      },
     );
   }
 }
 
-class Settings extends StatelessWidget {
+class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Settings Page',
-        style: TextStyle(fontSize: 24),
-      ),
+    var appState = context.watch<MyAppState>();
+    return ListView(
+      children: [
+        SwitchListTile(
+          title: Text('Show Favorites'),
+          value: appState.showFavorites,
+          onChanged: (val) => appState.toggleShowFavorites(val),
+        ),
+        SwitchListTile(
+          title: Text('Show AddNotes'),
+          value: appState.showAddNotes,
+          onChanged: (val) => appState.toggleShowAddNotes(val),
+        ),
+        SwitchListTile(
+          title: Text('Show ListOfNotes'),
+          value: appState.showListOfNotes,
+          onChanged: (val) => appState.toggleShowListOfNotes(val),
+        )
+      ],
     );
   }
 }
-
 
 class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     var pair = appState.current;
-var iconSize = 24.0; // Стандартный размер иконки
+    var iconSize = 24.0;
     IconData icon;
     if (appState.favorites.contains(pair)) {
       icon = Icons.favorite;
-      iconSize = 40.0; // Увеличенный размер иконки
+      iconSize = 40.0;
     } else {
       icon = Icons.favorite_border;
-      iconSize = 24.0; // Стандартный размер иконки
+      iconSize = 24.0;
     }
 
     return Center(
@@ -168,7 +180,6 @@ var iconSize = 24.0; // Стандартный размер иконки
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              
               ElevatedButton(
                 onPressed: () {
                   appState.getNext();
@@ -177,20 +188,22 @@ var iconSize = 24.0; // Стандартный размер иконки
               ),
               SizedBox(width: 30),
               ElevatedButton.icon(
-  onPressed: () { appState.toggleFavourite(); },
-  icon: AnimatedSwitcher(
-    duration: Duration(milliseconds: 300),
-    transitionBuilder: (child, animation) =>
-        ScaleTransition(scale: animation, child: child),
-    child: Icon(
-      icon,
-      key: ValueKey(iconSize), // ключ для анимации смены размера
-      size: iconSize,
-      color: const Color.fromARGB(255, 196, 35, 104),
-    ),
-  ),
-  label: Text('LIKE'),
-)
+                onPressed: () {
+                  appState.toggleFavourite();
+                },
+                icon: AnimatedSwitcher(
+                  duration: Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) =>
+                      ScaleTransition(scale: animation, child: child),
+                  child: Icon(
+                    icon,
+                    key: ValueKey(iconSize),
+                    size: iconSize,
+                    color: const Color.fromARGB(255, 196, 35, 104),
+                  ),
+                ),
+                label: Text('LIKE'),
+              )
             ],
           ),
         ],
@@ -198,6 +211,7 @@ var iconSize = 24.0; // Стандартный размер иконки
     );
   }
 }
+
 class FavoritesPage extends StatefulWidget {
   @override
   State<FavoritesPage> createState() => _FavoritesPageState();
@@ -329,60 +343,6 @@ class _FavoritesPageState extends State<FavoritesPage> {
   }
 }
 
-
-  Set<WordPair> selected = {};
-    @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-
-    if (appState.favorites.isEmpty) {
-      return Center(
-        child: Text('No favorites yet, start adding some!'),
-      );
-    }
-
-    return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text('You have '
-              '${appState.favorites.length} favorites:',style: TextStyle(fontSize:30 ),),
-        ),
-        for (var pair in appState.favorites)
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text(pair.asLowerCase),
-            trailing: IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              tooltip: 'Удалить из избранного',
-              onPressed: () async{
-                final confirm  = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text('Delete favorite?'),
-                    content: Text('Are you sure you want to delete this favorite?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: Text('Delete'),
-                      ),
-                    ],
-                  )
-                );
-                if(confirm == true){
-                  appState.favorites.remove(pair);
-                  appState.notifyListeners();
-                }
-              },
-            ),
-          ),
-      ],
-    );
-  }
 class AddNotesPage extends StatefulWidget {
   @override
   State<AddNotesPage> createState() => _AddNotesPageState();
@@ -427,6 +387,7 @@ class _AddNotesPageState extends State<AddNotesPage> {
     );
   }
 }
+
 class Note {
   String title;
   String content;
@@ -487,21 +448,21 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
     );
   }
 
-@override
-Widget build(BuildContext context) {
-  var appState = context.watch<MyAppState>();
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
 
-  final filteredNotes = appState.notes
-      .where((note) =>
-          note.title.toLowerCase().contains(_searchText.toLowerCase()) ||
-          note.content.toLowerCase().contains(_searchText.toLowerCase()))
-      .toList();
+    final filteredNotes = appState.notes
+        .where((note) =>
+            note.title.toLowerCase().contains(_searchText.toLowerCase()) ||
+            note.content.toLowerCase().contains(_searchText.toLowerCase()))
+        .toList();
 
     return SafeArea(
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.only(left: 10, right: 20, top: 80, bottom: 0),
             child: Text(
               'You have ${filteredNotes.length} notes:',
               style: TextStyle(fontSize: 30),
@@ -564,60 +525,61 @@ Widget build(BuildContext context) {
               ],
             ),
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredNotes.length,
-              itemBuilder: (context, index) {
-                final note = filteredNotes[index];
-                final realIndex = appState.notes.indexOf(note);
-                return ListTile(
-                  leading: selectionMode
-                      ? Checkbox(
-                          value: selected.contains(realIndex),
-                          onChanged: (checked) {
-                            setState(() {
-                              if (checked == true) {
-                                selected.add(realIndex);
-                              } else {
-                                selected.remove(realIndex);
-                              }
-                            });
-                          },
-                        )
-                      : Icon(Icons.note),
-                  title: Text(note.title),
-                  subtitle: Text(
-                    note.content.length > 30
-                        ? note.content.substring(0, 30) + '...'
-                        : note.content,
+            child: filteredNotes.isEmpty
+                ? Container()
+                : ListView.builder(
+                    itemCount: filteredNotes.length,
+                    itemBuilder: (context, index) {
+                      final note = filteredNotes[index];
+                      final realIndex = appState.notes.indexOf(note);
+                      return ListTile(
+                        leading: selectionMode
+                            ? Checkbox(
+                                value: selected.contains(realIndex),
+                                onChanged: (checked) {
+                                  setState(() {
+                                    if (checked == true) {
+                                      selected.add(realIndex);
+                                    } else {
+                                      selected.remove(realIndex);
+                                    }
+                                  });
+                                },
+                              )
+                            : Icon(Icons.note),
+                        title: Text(note.title),
+                        subtitle: Text(
+                          note.content.length > 30
+                              ? note.content.substring(0, 30) + '...'
+                              : note.content,
+                        ),
+                        onTap: () {
+                          _editNote(context, realIndex, note);
+                        },
+                        onLongPress: () {
+                          setState(() {
+                            selectionMode = true;
+                            selected.add(realIndex);
+                          });
+                        },
+                        trailing: !selectionMode
+                            ? IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () {
+                                  _editNote(context, realIndex, note);
+                                },
+                              )
+                            : null,
+                      );
+                    },
                   ),
-                  onTap: () {
-                    _editNote(context, realIndex, note);
-                  },
-                  onLongPress: () {
-                    setState(() {
-                      selectionMode = true;
-                      selected.add(realIndex);
-                    });
-                  },
-                  trailing: !selectionMode
-                      ? IconButton(
-                          icon: Icon(Icons.edit),
-                          onPressed: () {
-                            _editNote(context, realIndex, note);
-                          },
-                        )
-                      : null,
-                );
-              },
-            ),
           ),
         ],
       ),
     );
   }
-} // ← закрывает _ListOfNotesPageState
+}
 
-// Дальше твой следующий класс:
 class BigCard extends StatelessWidget {
   const BigCard({
     super.key,
@@ -638,9 +600,9 @@ class BigCard extends StatelessWidget {
         padding: const EdgeInsets.all(30.0),
         child: Text(
           pair.asLowerCase,
-         style: style,
-         semanticsLabel: "${pair.first} ${pair.second}"),
+          style: style,
+          semanticsLabel: "${pair.first} ${pair.second}"),
       ),
     );
   }
-}
+  }
