@@ -19,7 +19,9 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Namer App',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 56, 56, 209)),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color.fromARGB(255, 56, 56, 209),
+          ),
         ),
         home: MyHomePage(), // Главная страница приложения
       ),
@@ -43,14 +45,17 @@ class MyAppState extends ChangeNotifier {
     showFavorites = value;
     notifyListeners();
   }
+
   void toggleShowAddNotes(bool value) {
     showAddNotes = value;
     notifyListeners();
   }
+
   void toggleShowListOfNotes(bool value) {
     showListOfNotes = value;
     notifyListeners();
   }
+
   void toggleShowSettings(bool value) {
     showSettings = value;
     notifyListeners();
@@ -102,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
         'destination': NavigationRailDestination(
           icon: Icon(Icons.home),
           label: Text('Home'),
-        )
+        ),
       },
       if (appState.showFavorites)
         {
@@ -111,7 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
           'destination': NavigationRailDestination(
             icon: Icon(Icons.favorite),
             label: Text('Favorites'),
-          )
+          ),
         },
       if (appState.showAddNotes)
         {
@@ -120,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
           'destination': NavigationRailDestination(
             icon: Icon(Icons.edit_note_sharp, size: 30),
             label: Text('AddNotes'),
-          )
+          ),
         },
       if (appState.showListOfNotes)
         {
@@ -129,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
           'destination': NavigationRailDestination(
             icon: Icon(Icons.format_list_numbered_rtl_rounded, size: 30),
             label: Text('ListOfNotes'),
-          )
+          ),
         },
       if (appState.showSettings)
         {
@@ -138,18 +143,21 @@ class _MyHomePageState extends State<MyHomePage> {
           'destination': NavigationRailDestination(
             icon: Icon(Icons.settings),
             label: Text('Settings'),
-          )
+          ),
         },
     ];
 
     // Получаем списки для NavigationRail и страниц
-    final destinations = navItems.map((e) => e['destination'] as NavigationRailDestination).toList();
+    final destinations = navItems
+        .map((e) => e['destination'] as NavigationRailDestination)
+        .toList();
     final pages = navItems.map((e) => e['widget'] as Widget).toList();
     final ids = navItems.map((e) => e['id'] as String).toList();
 
     // Определяем индекс текущей страницы
     int currentIndex = ids.indexOf(selectedPageId);
-    if (currentIndex == -1) currentIndex = 0; // Если страница скрыта, переходим на первую
+    if (currentIndex == -1)
+      currentIndex = 0; // Если страница скрыта, переходим на первую
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -158,12 +166,15 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               SafeArea(
                 child: NavigationRail(
-                  extended: constraints.maxWidth >= 700, // Расширять меню на широких экранах
+                  extended:
+                      constraints.maxWidth >=
+                      700, // Расширять меню на широких экранах
                   destinations: destinations, // Пункты меню
                   selectedIndex: currentIndex, // Текущий выбранный пункт
                   onDestinationSelected: (value) {
                     setState(() {
-                      selectedPageId = ids[value]; // Меняем id выбранной страницы
+                      selectedPageId =
+                          ids[value]; // Меняем id выбранной страницы
                     });
                   },
                 ),
@@ -262,7 +273,7 @@ class GeneratorPage extends StatelessWidget {
                   ),
                 ),
                 label: Text('LIKE'),
-              )
+              ),
             ],
           ),
         ],
@@ -286,15 +297,18 @@ class _FavoritesPageState extends State<FavoritesPage> {
     var appState = context.watch<MyAppState>();
 
     if (appState.favorites.isEmpty) {
-      return Center(
-        child: Text('No favorites yet, start adding some!'),
-      );
+      return Center(child: Text('No favorites yet, start adding some!'));
     }
 
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 10, right: 20, top: 80, bottom: 0),
+          padding: const EdgeInsets.only(
+            left: 10,
+            right: 20,
+            top: 80,
+            bottom: 0,
+          ),
           child: Text(
             'You have ${appState.favorites.length} favorites:',
             style: TextStyle(fontSize: 30),
@@ -308,10 +322,14 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 175, 137, 135)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 175, 137, 135),
+                    ),
                     onPressed: () {
                       setState(() {
-                        appState.favorites.removeWhere((pair) => selected.contains(pair));
+                        appState.favorites.removeWhere(
+                          (pair) => selected.contains(pair),
+                        );
                         selected.clear();
                         selectionMode = false;
                         appState.notifyListeners();
@@ -323,7 +341,12 @@ class _FavoritesPageState extends State<FavoritesPage> {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(right: 0, left: 0, top: 0, bottom: 0),
+                  padding: const EdgeInsets.only(
+                    right: 0,
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                  ),
                   child: ElevatedButton(
                     onPressed: () {
                       setState(() {
@@ -372,14 +395,18 @@ class _FavoritesPageState extends State<FavoritesPage> {
                               context: context,
                               builder: (context) => AlertDialog(
                                 title: Text('Удалить из избранного?'),
-                                content: Text('Вы действительно хотите удалить это слово из избранного?'),
+                                content: Text(
+                                  'Вы действительно хотите удалить это слово из избранного?',
+                                ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.of(context).pop(false),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
                                     child: Text('Нет'),
                                   ),
                                   TextButton(
-                                    onPressed: () => Navigator.of(context).pop(true),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
                                     child: Text('Да'),
                                   ),
                                 ],
@@ -435,8 +462,12 @@ class _AddNotesPageState extends State<AddNotesPage> {
           SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
-              if (_titleController.text.isNotEmpty && _contentController.text.isNotEmpty) {
-                appState.addNote(_titleController.text, _contentController.text);
+              if (_titleController.text.isNotEmpty &&
+                  _contentController.text.isNotEmpty) {
+                appState.addNote(
+                  _titleController.text,
+                  _contentController.text,
+                );
                 _titleController.clear();
                 _contentController.clear();
               }
@@ -518,16 +549,23 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
 
     // Фильтрация заметок по поиску
     final filteredNotes = appState.notes
-        .where((note) =>
-            note.title.toLowerCase().contains(_searchText.toLowerCase()) ||
-            note.content.toLowerCase().contains(_searchText.toLowerCase()))
+        .where(
+          (note) =>
+              note.title.toLowerCase().contains(_searchText.toLowerCase()) ||
+              note.content.toLowerCase().contains(_searchText.toLowerCase()),
+        )
         .toList();
 
     return SafeArea(
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 10, right: 20, top: 80, bottom: 0),
+            padding: const EdgeInsets.only(
+              left: 10,
+              right: 20,
+              top: 80,
+              bottom: 0,
+            ),
             child: Text(
               'You have ${filteredNotes.length} notes:',
               style: TextStyle(fontSize: 30),
@@ -557,12 +595,14 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
                       onPressed: () {
                         setState(() {
                           appState.notes = [
                             for (int i = 0; i < appState.notes.length; i++)
-                              if (!selected.contains(i)) appState.notes[i]
+                              if (!selected.contains(i)) appState.notes[i],
                           ];
                           selected.clear();
                           selectionMode = false;
@@ -645,17 +685,11 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
   }
 }
 
-
 // Красивая карточка для генератора слов
 class BigCard extends StatelessWidget {
-  
-  const BigCard({
-    super.key,
-    required this.pair,
-  });
+  const BigCard({super.key, required this.pair});
 
   final WordPair pair;
-
 
   @override
   Widget build(BuildContext context) {
@@ -670,7 +704,8 @@ class BigCard extends StatelessWidget {
         child: Text(
           pair.asLowerCase,
           style: style,
-          semanticsLabel: "${pair.first} ${pair.second}"),
+          semanticsLabel: "${pair.first} ${pair.second}",
+        ),
       ),
     );
   }
@@ -678,3 +713,4 @@ class BigCard extends StatelessWidget {
 //just check
 //check
 //check again 
+// check
