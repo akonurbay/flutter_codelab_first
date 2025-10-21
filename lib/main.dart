@@ -645,14 +645,17 @@ class _ListOfNotesPageState extends State<ListOfNotesPage> {
   }
 }
 
+
 // Красивая карточка для генератора слов
 class BigCard extends StatelessWidget {
+  
   const BigCard({
     super.key,
     required this.pair,
   });
 
   final WordPair pair;
+
 
   @override
   Widget build(BuildContext context) {
@@ -674,3 +677,4 @@ class BigCard extends StatelessWidget {
 }
 //just check
 //check
+//check again 
