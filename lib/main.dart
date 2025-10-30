@@ -194,6 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 // Страница настроек с тумблерами для отображения пунктов меню
+//1 -1 
 class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
