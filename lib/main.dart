@@ -192,7 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
+//check
 // Страница настроек с тумблерами для отображения пунктов меню
 //1 -1 
 class SettingsPage extends StatelessWidget {
